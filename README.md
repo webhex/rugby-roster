@@ -20,7 +20,7 @@ Two free accounts:
 1. Create a new project at supabase.com. Pick any region near you and save
    the database password somewhere safe.
 2. Open the **SQL Editor** in the left sidebar.
-3. Run the four SQL files from the `supabase/` folder **in this order**, each
+3. Run the five SQL files from the `supabase/` folder **in this order**, each
    one copied whole into the editor. Order matters: each builds on the last.
 
    | File | What it does |
@@ -29,9 +29,20 @@ Two free accounts:
    | `grants.sql` | table privileges for logged-in users. Without it every request returns 403 |
    | `privacy-fix.sql` | stops volunteers reading each other's phone numbers |
    | `ownership.sql` | event owners, shift permissions, handover |
+   | `account-deletion.sql` | lets people delete their own account, and admins delete any |
 
-   All four are safe to run more than once, so if you lose track you can run
+   All five are safe to run more than once, so if you lose track you can run
    them again in order.
+
+   After the last one, run this to confirm account deletion will actually work:
+
+   ```sql
+   select has_table_privilege('postgres', 'auth.users', 'delete');
+   ```
+
+   It should return `true`. If it returns `false`, deleting accounts will fail
+   at the last step, and the fallback is a server route using the
+   `service_role` key instead. Everything else works either way.
 4. Go to **Settings → API** and copy two values:
    - Project URL
    - `anon` public key
@@ -136,9 +147,22 @@ owner drops back to being an ordinary volunteer on that event and cannot take it
 back. Only the new owner or an admin can move it again. Shifts and sign-ups are
 untouched.
 
-An owner also cannot delete their own account while they still own events; the
-database refuses and tells them to hand the events on first. Otherwise a
-departure would take a fixture's bar cover with it.
+**Deleting an account.** Anyone can delete their own, from the Your account box
+at the bottom of the roster. Admins can delete anybody's, from the Delete button
+beside each name in the admin panel.
+
+Two things stop a deletion. You cannot delete somebody who still owns events —
+hand those to another volunteer first, or a fixture loses its bar cover along
+with them. And the club must keep at least one admin, so the last admin cannot
+delete themselves, the same rule that stops them demoting themselves.
+
+Deleting an account removes that person from every shift they had signed up for.
+The shifts themselves survive, one name shorter. You are warned before it
+happens, and it cannot be undone.
+
+This is enforced in the database, so it holds however the account is deleted —
+including straight from the Supabase dashboard, where the refusal appears as a
+message explaining what to do.
 
 **Shifts** are managed by the event's owner and by admins. Volunteers see the
 times but cannot add, edit or delete them.
@@ -208,6 +232,17 @@ fail in the direction of being too generous.
 - [ ] While already signed in, open `/auth/login`. It should redirect to the
       roster — that redirect still applies to every `/auth` page except the
       callback and the update-password page.
+- [ ] As a volunteer who owns no events, delete your own account. You are signed
+      out, and your name is gone from the shifts you were on.
+- [ ] Sign up again with the same email. It should work, as a new volunteer.
+- [ ] As a volunteer who owns an event, try to delete your account. Refused,
+      naming how many events. Hand them over, then it works.
+- [ ] As an admin, delete another volunteer. Their name disappears from the
+      volunteer list and from every shift.
+- [ ] As the only admin, try to delete yourself. Refused. Promote somebody else,
+      then it works.
+- [ ] As a volunteer, call `delete_account` from the browser console with another
+      volunteer's id. Refused — the admin panel's absence is not the protection.
 
 ## Known rough edges
 
@@ -218,10 +253,11 @@ fail in the direction of being too generous.
   effect, but the setting also hides any future type error, so consider turning
   it off once the app is stable.
 - No email reminders, no recurring events, no shift swap requests.
-- Nothing warns you that deleting a volunteer's account also removes them from
-  every shift they had signed up for. The shifts survive, one name shorter, but
-  it happens silently. There is no delete-volunteer screen in the app, so this
-  only bites in the Supabase dashboard.
+- Account deletion is immediate, with a confirmation box and nothing else. There
+  is no grace period and no way back.
+- Deleting an account from the Supabase dashboard rather than from the app still
+  works, and is still refused if they own events, but the dashboard gives no
+  warning about the shift sign-ups that go with them.
 
 ## Files worth knowing
 
