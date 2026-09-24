@@ -180,7 +180,10 @@ many people that is, before it happens.
 
 **Sign-up.** Everybody, admins included, can add and remove themselves with the
 Sign me up button. Admins and the event's owner can additionally place or remove
-anyone, via the dropdown on each shift and the Remove button next to each name.
+anyone, via Manage volunteers on each shift and the Remove button next to each
+name. Manage volunteers opens a search box with a tickable list: type part of a
+name to narrow it, tick everyone covering the shift, and press Save. Nothing is
+written until you do, so Cancel leaves the shift exactly as it was.
 Any number of people can be on one shift; there is no cap.
 
 **Privacy.** Every volunteer sees the names of people on a shift, and nothing

@@ -236,7 +236,9 @@ Then:
   rather than see it and get a refusal.
 - Render the shift end time as text for volunteers. Only `canManage` gets the
   time input.
-- Show the manage-volunteers dropdown when `canManage`, not only when `isAdmin`.
+- Show the Manage volunteers control when `canManage`, not only when `isAdmin`.
+  Built as a searchable, tickable dialog rather than a `<select>`, because a
+  select becomes unusable once a club has more than a couple of dozen names.
   Populate it from `assignable_volunteers(event.id)`.
 - Add a delete control per shift, visible when `canManage`, with the confirmation
   wording above.
