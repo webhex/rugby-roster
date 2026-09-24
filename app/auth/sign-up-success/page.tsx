@@ -1,0 +1,3 @@
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+export default function SignUpSuccess(){return <main className="flex min-h-svh items-center justify-center bg-[#f5f7f4] px-5"><div className="w-full max-w-md rounded-2xl border border-[#dbe7df] bg-white p-8 text-center shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5c7d6a]">Rugby club bar</p><h1 className="mt-3 text-2xl font-bold text-[#12372a]">Check your inbox</h1><p className="mt-3 text-sm text-[#668070]">We&apos;ve sent a confirmation link to your email. Confirm it to finish joining the roster.</p><Button asChild className="mt-6 bg-[#185c3a] hover:bg-[#12482d]"><Link href="/auth/login">Back to sign in</Link></Button></div></main>}
