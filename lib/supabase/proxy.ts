@@ -9,6 +9,11 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
   if (!user && path.startsWith('/app')) return NextResponse.redirect(new URL('/auth/login', request.url))
-  if (user && path.startsWith('/auth')) return NextResponse.redirect(new URL('/app', request.url))
+  // Two paths under /auth have to stay reachable while signed in. /auth/callback
+  // is what creates the session in the first place, and password reset
+  // deliberately lands an already-signed-in person on /auth/update-password to
+  // choose a new password. Bouncing either to /app breaks the reset flow.
+  const signedInMayVisit = path === '/auth/callback' || path === '/auth/update-password'
+  if (user && path.startsWith('/auth') && !signedInMayVisit) return NextResponse.redirect(new URL('/app', request.url))
   return response
 }

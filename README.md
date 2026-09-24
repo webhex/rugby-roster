@@ -82,7 +82,12 @@ you have allowed.
 1. In Supabase, go to **Authentication → URL Configuration**
 2. Set **Site URL** to your Vercel URL, for example
    `https://rugby-roster.vercel.app`
-3. Add `https://your-url.vercel.app/auth/callback` under Redirect URLs
+3. Add `https://your-url.vercel.app/**` under Redirect URLs
+
+Use the `/**` wildcard rather than listing `/auth/callback` on its own. The
+password reset link carries a query string — `/auth/callback?next=...` — and an
+exact entry without the wildcard will not match it. Supabase then refuses the
+redirect and the reset link fails, with the reason only visible in the Auth logs.
 
 ### 5. First login
 
@@ -99,6 +104,25 @@ itself without an admin.
 
 **Registration** is gated by a single shared invite code, which an admin can
 rotate at any time. Rotating it does not affect existing accounts.
+
+**Forgotten passwords.** There is a Forgot your password? link on the sign-in
+page. It emails a link that signs the person in once and drops them on a page to
+choose a new password. The link lasts an hour and stops working after one use.
+
+The page says the same thing whether or not the address has an account, so
+nobody can use it to find out who is a member of the club.
+
+One thing to know before the club relies on this: **Supabase's built-in email
+service is rate limited and is not meant for real use.** The allowance is a
+handful of messages per hour for the whole project, shared across sign-up
+confirmations and password resets. Two people forgetting their passwords on the
+same evening is enough to hit it, and the second one gets told to wait with no
+email arriving. Before handing the URL to the club, set up your own mail sender
+under **Authentication → Emails → SMTP Settings**. Resend, Postmark and SendGrid
+all have free tiers that cover a club comfortably.
+
+This is separate from the email confirmation you turned off for sign-up. Reset
+emails use a different template and still send.
 
 **Events** can be created by any logged-in user, and whoever creates one owns
 it. The owner has the same powers over that event as an admin has: edit it,
@@ -174,6 +198,16 @@ fail in the direction of being too generous.
 - [ ] Create an event in the past. Volunteers cannot see it, admins can via
       Show past.
 - [ ] Try to demote yourself as the only admin. It should refuse.
+- [ ] Use Forgot your password?, follow the emailed link, set a new password,
+      and sign in with it. The old password should no longer work.
+- [ ] Request a reset for an address that has no account. The page should say
+      the same thing as for a real one, and no email should arrive.
+- [ ] Open `/auth/update-password` directly while signed out. It should send you
+      to the forgot-password page rather than showing a form.
+- [ ] Use a reset link twice. The second attempt should fail.
+- [ ] While already signed in, open `/auth/login`. It should redirect to the
+      roster — that redirect still applies to every `/auth` page except the
+      callback and the update-password page.
 
 ## Known rough edges
 
